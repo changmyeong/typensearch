@@ -2,10 +2,13 @@ import { ClientOptions } from '@opensearch-project/opensearch';
 
 export type FieldType =
   | 'binary'
+  | 'byte'
   | 'boolean'
   | 'date'
   | 'double'
   | 'float'
+  | 'half_float'
+  | 'scaled_float'
   | 'integer_range'
   | 'long_range'
   | 'double_range'
@@ -158,7 +161,7 @@ export interface BooleanFieldOptions extends BaseFieldOptions {
   nullValue?: boolean;
 }
 
-export interface NumberFieldOptions {
+export interface NumberFieldOptions extends BaseFieldOptions {
   type: 'byte' | 'double' | 'float' | 'half_float' | 'integer' | 'long' | 'short' | 'scaled_float';
   boost?: number;
   coerce?: boolean;
@@ -243,7 +246,8 @@ export type FieldOptions =
   | AliasFieldOptions
   | GeoPointFieldOptions
   | XYPointFieldOptions
-  | RankFeatureFieldOptions;
+  | RankFeatureFieldOptions
+  | BaseFieldOptions;
 
 export interface IndexOptions {
   name: string;
