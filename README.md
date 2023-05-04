@@ -42,10 +42,10 @@ class User extends Model {
   @Field({ type: 'text', required: true })
   username: string;
 
-  @Field({ type: 'text', required: true })
+  @Field({ type: 'keyword', required: true })
   email: string;
 
-  @Field({ type: 'date' })
+  @Field({ type: 'date', boost: 3 })
   birthdate: Date;
 
   @CreatedAt()
