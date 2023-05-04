@@ -79,6 +79,11 @@ const deletedDocs = await User.deleteMany({ username: 'john_doe' });
 // Get a document by ID
 const user = await User.get('user1');
 
+// Change fields of the document and save it.
+user.username = 'alice';
+user.email = 'alice@bitcoin.com';
+await user.save();
+
 // Delete a document
 await user.delete();
 ```
@@ -127,6 +132,11 @@ await user.delete();
 
 - Get a document by ID.
 - Returns null if the document does not exist.
+
+### `Model.save(): Promise<void>`
+
+- Save the current document.
+- Returns undefined if success
 
 ### `Model.delete(): Promise<ApiResponse>`
 

@@ -88,6 +88,31 @@ export abstract class Model {
     }
   }
 
+  public async save(refresh?: boolean): Promise<void> {
+    if (!this._id) {
+      throw new Error('[typesearch] save: Cannot save a document without an _id');
+    }
+  
+    const metadata = indexMetadataMap.get(this.constructor);
+    if (!metadata) {
+      throw new Error('[typesearch] save: No metadata found for schema');
+    }
+  
+    const { _id, ...others } = this;
+    const { body } = await opensearchClient.update({
+      index: metadata.name,
+      id: this._id,
+      body: {
+        doc: others,
+      },
+      refresh,
+    });
+  
+    if (body.result !== 'updated') {
+      throw new Error(`[typesearch] save: Failed to update document`);
+    }
+  }
+
   public async delete(): Promise<ApiResponse> {
     const metadata = indexMetadataMap.get(this.constructor);
     if (!metadata) {
