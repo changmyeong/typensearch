@@ -13,7 +13,7 @@ TypenSearch is a simple and lightweight Object Document Mapper (ODM) for OpenSea
 ## Installation
 
 ```bash
-npm install --save typesearch
+npm install --save typensearch
 ```
 
 ## Usage
@@ -27,8 +27,8 @@ import {
   DocumentId,
   CreatedAt,
   UpdatedAt,
-  Model
-} from 'typesearch';
+  Model,
+} from 'typensearch';
 
 // Initialize OpenSearch Client globally.
 setOpenSearchClient({ node: 'http://localhost:9200' })
