@@ -1,0 +1,43 @@
+{
+  "name": "typensearch",
+  "version": "1.0.0",
+  "description": "Awesome OpenSearch model using TypeScript classes.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/changmyeong/typensearch.git"
+  },
+  "keywords": [
+    "opensearch",
+    "schema",
+    "database",
+    "orm",
+    "odm",
+    "aws",
+    "amazon",
+    "query",
+    "scan",
+    "object",
+    "storage"
+  ],
+  "author": {
+    "name": "changmyeong",
+    "email": "changmyeong.baek@gmail.com",
+    "url": "https://github.com/changmyeong"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/changmyeong/typensearch/issues"
+  },
+  "homepage": "https://github.com/changmyeong/typensearch#readme",
+  "dependencies": {
+    "@opensearch-project/opensearch": "^2.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.3",
+    "typescript": "^5.0.4"
+  }
+}
