@@ -39,23 +39,20 @@ setOpenSearchClient({ node: 'http://localhost:9200' })
   createIfNotExists: true,
 })
 class User extends Model {
-  @DocumentId()
-  public _id: string;
+  @Field({ type: 'text', required: true })
+  username: string;
 
   @Field({ type: 'text', required: true })
-  public username: string;
-
-  @Field({ type: 'text', required: true })
-  public email: string;
+  email: string;
 
   @Field({ type: 'date' })
-  public birthdate: Date;
+  birthdate: Date;
 
   @CreatedAt()
-  public createdAt: Date;
+  createdAt: Date;
 
   @UpdatedAt()
-  public updatedAt: Date;
+  updatedAt: Date;
 }
 ```
 
