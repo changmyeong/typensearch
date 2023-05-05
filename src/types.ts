@@ -37,10 +37,12 @@ export type FieldType =
 export interface BaseFieldOptions {
   type: FieldType;
   required?: boolean;
+  default?: any;
 }
 
 export interface TextFieldOptions extends BaseFieldOptions {
   type: 'text';
+  default?: string;
   analyzer?: string;
   searchAnalyzer?: string;
   index?: boolean | 'no' | 'analyzed' | 'not_analyzed' | 'no';
@@ -69,6 +71,7 @@ export interface TextFieldOptions extends BaseFieldOptions {
 
 export interface KeywordFieldOptions extends BaseFieldOptions {
   type: 'keyword';
+  default?: string;
   boost?: number;
   docValues?: boolean;
   eagerGlobalOrdinals?: boolean;
@@ -86,6 +89,7 @@ export interface KeywordFieldOptions extends BaseFieldOptions {
 
 export interface DateFieldOptions extends BaseFieldOptions {
   type: 'date';
+  default?: string | Date;
   boost?: number;
   docValues?: boolean;
   format?: string;
@@ -98,12 +102,15 @@ export interface DateFieldOptions extends BaseFieldOptions {
 
 export interface ObjectFieldOptions extends BaseFieldOptions {
   type: 'object';
+  default?: object;
   dynamic?: boolean | 'strict';
   enabled?: boolean;
+  properties: Record<string, BaseFieldOptions>;
 }
 
 export interface NestedFieldOptions extends BaseFieldOptions {
   type: 'nested';
+  default?: object;
   dynamic?: boolean | 'strict';
   includeInParent?: boolean;
   includeInRoot?: boolean;
@@ -122,6 +129,7 @@ export interface IPFieldOptions extends BaseFieldOptions {
 
 export interface NumberRangeFieldOptions extends BaseFieldOptions {
   type: 'integer_range' | 'long_range' | 'double_range' | 'float_range';
+  default?: number;
   format?: string;
   gte?: string;
   lte?: string;
@@ -134,6 +142,7 @@ export interface NumberRangeFieldOptions extends BaseFieldOptions {
 
 export interface IPRangeFieldOptions extends BaseFieldOptions {
   type: 'ip_range';
+  default?: string;
   boost?: number;
   coerce?: boolean;
   index?: boolean | 'no' | 'analyzed' | 'not_analyzed' | 'no';
@@ -144,6 +153,7 @@ export interface IPRangeFieldOptions extends BaseFieldOptions {
 
 export interface DateRangeFieldOptions extends BaseFieldOptions {
   type: 'date_range';
+  default?: string | Date;
   boost?: number;
   coerce?: boolean;
   index?: boolean | 'no' | 'analyzed' | 'not_analyzed' | 'no';
@@ -154,6 +164,7 @@ export interface DateRangeFieldOptions extends BaseFieldOptions {
 
 export interface BooleanFieldOptions extends BaseFieldOptions {
   type: 'boolean';
+  default?: boolean;
   boost?: number;
   docValues?: boolean;
   index?: boolean | 'no' | 'analyzed' | 'not_analyzed' | 'no';
@@ -163,6 +174,7 @@ export interface BooleanFieldOptions extends BaseFieldOptions {
 
 export interface NumberFieldOptions extends BaseFieldOptions {
   type: 'byte' | 'double' | 'float' | 'half_float' | 'integer' | 'long' | 'short' | 'scaled_float';
+  default?: number;
   boost?: number;
   coerce?: boolean;
   index?: boolean | 'no' | 'analyzed' | 'not_analyzed' | 'no';
@@ -179,6 +191,7 @@ export interface ScaledFloatFieldOptions extends NumberFieldOptions {
 
 export interface BinaryFieldOptions extends BaseFieldOptions {
   type: 'binary';
+  default?: boolean;
   store?: boolean;
   docValues?: boolean;
 }
@@ -250,9 +263,9 @@ export type FieldOptions =
   | BaseFieldOptions;
 
 export interface IndexOptions {
-  name: string;
-  clientOptions: ClientOptions;
-  createIfNotExists: boolean;
+  name?: string;
+  clientOptions?: ClientOptions;
+  createIfNotExists?: boolean;
   numberOfShards?: number;
   numberOfReplicas?: number;
 }
@@ -263,8 +276,9 @@ export interface IndexMetadata {
   properties: {
     [propertyName: string]: {
       type: FieldType;
-      required: boolean;
-      options: Partial<FieldOptions>;
+      required?: boolean;
+      default?: any;
+      options?: Partial<FieldOptions>;
     };
   };
 }

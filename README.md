@@ -48,6 +48,21 @@ class User extends Model {
   @Field({ type: 'date', boost: 3 })
   birthdate: Date;
 
+  @Field({
+    type: 'object',
+    required: true,
+    properties: {
+      country: { type: 'keyword', required: false },
+      address: { type: 'keyword', required: true },
+      nickname: { type: 'keyword', required: true },
+    },
+  })
+  others: {
+    country?: string;
+    address: string;
+    nickname: string;
+  };
+
   @CreatedAt()
   createdAt: Date;
 
@@ -82,7 +97,7 @@ const user = await User.get('user1');
 // Change fields of the document and save it.
 user.username = 'alice';
 user.email = 'alice@bitcoin.com';
-await user.save();
+await user.save(true);
 
 // Delete a document
 await user.delete();
@@ -110,7 +125,7 @@ await user.delete();
 
 - Decorator to define an updatedAt field with a date type.
 
-### `Model.index<T>(doc: Partial<T>, refresh?: boolean): Promise<ApiResponse>`
+### `Model.index<T>(doc: Partial<T>, refresh?: boolean): Promise<T>`
 
 - Index a document.
 - Refresh the index if `refresh` is true.
@@ -133,14 +148,20 @@ await user.delete();
 - Get a document by ID.
 - Returns null if the document does not exist.
 
-### `Model.save(): Promise<void>`
+### `Model.delete<T>(id: string, refresh?: boolean): Promise<void>`
 
-- Save the current document.
+- Delete a document matching the id.
 - Returns undefined if success
 
-### `Model.delete(): Promise<ApiResponse>`
+### `model.delete(refresh?: boolean): Promise<ApiResponse>`
 
 - Delete the current document.
+
+### `model.save(refresh?: boolean): Promise<void>`
+
+- Save the current document.
+- Refresh the index if `refresh` is true.
+- Returns undefined if success
 
 ## Contributing
 

@@ -1,20 +1,27 @@
 import { FieldOptions, IndexMetadata, IndexOptions } from './types';
 import { opensearchClient, setOpenSearchClient } from './client';
-import { camelToSnakeObj } from './util';
+import { convertOptionsToMappingProperties } from './util';
 
 export const indexMetadataMap = new Map<Function, IndexMetadata>();
-export function Field(options: FieldOptions): PropertyDecorator {
+export function Field(options?: FieldOptions): PropertyDecorator {
   return function (target: any, propertyKey: string) {
     const metadata: IndexMetadata = indexMetadataMap.get(target.constructor) || {
       name: '',
       properties: {},
       clientOptions: {},
     };
+    options = options || {
+      type: 'keyword',
+      required: false,
+    } as FieldOptions;
 
     const { type, required, ...fieldOptions } = options;
+    delete fieldOptions.default;
+
     metadata.properties[propertyKey] = {
       type,
       required,
+      default: options.default,
       options: fieldOptions,
     };
 
@@ -23,14 +30,14 @@ export function Field(options: FieldOptions): PropertyDecorator {
 }
 
 export function CreatedAt(): PropertyDecorator {
-  return Field({ type: 'date' });
+  return Field({ type: 'date', default: Date.now });
 }
 
 export function UpdatedAt(): PropertyDecorator {
-  return Field({ type: 'date' });
+  return Field({ type: 'date', default: Date.now });
 }
 
-export function OpenSearchIndex(options: IndexOptions): ClassDecorator {
+export function OpenSearchIndex(options?: IndexOptions): ClassDecorator {
   if (!opensearchClient) {
     setOpenSearchClient(options.clientOptions);
   }
@@ -52,7 +59,7 @@ export function OpenSearchIndex(options: IndexOptions): ClassDecorator {
         const { type, options } = values;
         mappingProperties[propertyName] = {
           type,
-          ...camelToSnakeObj(options),
+          ...convertOptionsToMappingProperties(options),
         };
       }
 

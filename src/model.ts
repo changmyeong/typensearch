@@ -1,37 +1,48 @@
-import { Client, ApiResponse } from '@opensearch-project/opensearch';
+import { ApiResponse } from '@opensearch-project/opensearch';
 import { UpdateOptions, DeleteOptions } from './types';
 import { opensearchClient } from './client';
 import { indexMetadataMap } from './decorator';
-import { camelToSnakeObj } from './util';
+import { convertOptionsToMappingProperties } from './util';
 
 export abstract class Model {
   public _id: string | undefined;
-  public client: Client;
+  [property: string]: any;
 
-  public static async index<T extends Model>(this: new () => T, doc: Partial<T>, refresh?: boolean): Promise<ApiResponse> {
+  public static async index<T extends Model>(this: new () => T, doc: Partial<T>, refresh?: boolean): Promise<T> {
     const metadata = indexMetadataMap.get(this.prototype.constructor);
-    const requiredFields = Object.entries(metadata.properties)
-      .filter(([_, options]) => options.required)
-      .map(([key]) => key);
 
-    for (const field of requiredFields) {
-      if (!(field in doc)) {
-        throw new Error(`[typesearch] index: Required field "${field}" is missing`);
+    const instance: any = new this();
+    const indexDoc: any = {};
+    for (const [propertyName, options] of Object.entries(metadata.properties)) {
+      if (propertyName in doc) {
+        const value = doc[propertyName as string];
+        instance[propertyName] = value;
+        indexDoc[propertyName] = value;
+      } else if ('default' in options) {
+        const value = typeof options.default === 'function' ? options.default() : options.default;
+        instance[propertyName] = value;
+        indexDoc[propertyName] = value;
+      } else if (options.required) {
+        throw new Error(`[typesearch] index: Required field "${propertyName}" is missing`);
       }
     }
 
-    const instance: any = new this();
-    for (const [key, value] of Object.entries(doc)) {
-      instance[key] = value;
-    }
-
-    const { _id, ...others } = doc;
-    return opensearchClient.index({
+    const { _id, ...others } = indexDoc;
+    const response = await opensearchClient.index({
       index: metadata.name,
       id: _id,
       body: others,
       refresh,
+    }).catch(error => {
+      throw error;
     });
+
+    if (!['created', 'updated'].includes(response.body.result)) {
+      throw response.body;
+    }
+    
+    instance._id = response.body._id;
+    return instance;
   }
 
   public static async updateMany<T extends Model>(this: new () => T, query: Partial<T>, updates: Partial<T>, options?: UpdateOptions): Promise<ApiResponse> {
@@ -50,7 +61,7 @@ export abstract class Model {
     return opensearchClient.updateByQuery({
       index: metadata.name,
       body,
-      ...camelToSnakeObj(options),
+      ...convertOptionsToMappingProperties(options),
     });
   }
 
@@ -64,7 +75,7 @@ export abstract class Model {
           match: query,
         },
       },
-      ...camelToSnakeObj(options),
+      ...convertOptionsToMappingProperties(options),
     });
   }
 
@@ -123,5 +134,22 @@ export abstract class Model {
       index: metadata.name,
       id: this._id,
     });
+  }
+
+  public static async delete(id: string, refresh?: boolean): Promise<void> {
+    const metadata = indexMetadataMap.get(this.constructor);
+    if (!metadata) {
+      throw new Error('[typesearch] delete: No metadata found for schema');
+    }
+
+    const { body } = await opensearchClient.delete({
+      index: metadata.name,
+      id,
+      refresh,
+    });
+
+    if (body.result !== 'deleted') {
+      throw body;
+    }
   }
 }
