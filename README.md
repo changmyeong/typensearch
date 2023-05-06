@@ -132,8 +132,8 @@ await opensearchClient.bulk({ body });
 
 - Decorator to define an OpenSearch index and map it to a class.
 - `IndexOptions.name`: Set the index name. It uses String.toLowerCase() internally. default is the name of the class.
-- `IndexOptions.createIfNotExists`: Create Index if it does not exist.
-- `IndexOptions.clientOptions`: `ClientOptions` of `@opensearch-project/opensearch`
+- `IndexOptions.numberOfShards`: Set the shard number
+- `IndexOptions.numberOfReplicas`: Set the replica number
 
 ### `Field(options: FieldOptions): PropertyDecorator`
 
