@@ -32,18 +32,18 @@ import {
   opensearchClient,
 } from 'typensearch';
 
-// Initialize TypenSearach
-/// @params opensearchClientOptions: required
-/// @params typensearchOptions: optional
-// Return: Promise<void>
-initialize({
-  opensearchClientOptions: {
-    node: 'http://localhost:9200',
-  },
-  typensearchOptions: {
-    // Models decorated with OpenSearchIndex
-    createIndexIfNotExists: [ User ],
-  },
+/**
+ * Initializes the TypenSearch
+ *
+ * @param {Object} opensearchClientOptions - The options for the OpenSearch client.
+ * @param {Object} typensearchOptions - The options for TypenSearch.
+ * @returns {Promise<void>} A Promise that resolves when the initialization is complete.
+ */
+
+initialize(
+  { node: 'http://localhost:9200' },
+  // Models decorated with OpenSearchIndex
+  { createIndexIfNotExists: [ User ] },
 });
 
 @OpenSearchIndex({
