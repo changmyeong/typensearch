@@ -28,15 +28,28 @@ import {
   CreatedAt,
   UpdatedAt,
   Model,
+  initialize,
+  opensearchClient,
 } from 'typensearch';
 
-// Initialize OpenSearch Client globally.
-setOpenSearchClient({ node: 'http://localhost:9200' })
+// Initialize TypenSearach
+/// @params opensearchClientOptions: required
+/// @params typensearchOptions: optional
+// Return: Promise<void>
+initialize({
+  opensearchClientOptions: {
+    node: 'http://localhost:9200',
+  },
+  typensearchOptions: {
+    // Models decorated with OpenSearchIndex
+    createIndexIfNotExists: [ User ],
+  },
+});
 
 @OpenSearchIndex({
   name: 'user',
-  clientOptions: { node: 'http://localhost:9200' },
-  createIfNotExists: true,
+  numberOfShards: 2,
+  numberOfReplicas: 1,
 })
 class User extends Model {
   @Field({ type: 'text', required: true })
@@ -45,8 +58,15 @@ class User extends Model {
   @Field({ type: 'keyword', required: true })
   email: string;
 
-  @Field({ type: 'date', boost: 3 })
+  @Field({
+    type: 'date',
+    boost: 3,
+    default: Date.now,
+  })
   birthdate: Date;
+
+  @Field({ type: 'integer', default: 0 })
+  followerCount: number;
 
   @Field({
     type: 'object',
@@ -101,6 +121,9 @@ await user.save(true);
 
 // Delete a document
 await user.delete();
+
+// You can use OpenSearch client directly for unsupported methods.
+await opensearchClient.bulk({ body });
 ```
 
 ## API

@@ -264,16 +264,15 @@ export type FieldOptions =
 
 export interface IndexOptions {
   name?: string;
-  clientOptions?: ClientOptions;
-  createIfNotExists?: boolean;
   numberOfShards?: number;
   numberOfReplicas?: number;
 }
 
 export interface IndexMetadata {
-  clientOptions: ClientOptions;
-  name: string;
-  properties: {
+  name?: string;
+  numberOfShards?: number;
+  numberOfReplicas?: number;
+  properties?: {
     [propertyName: string]: {
       type: FieldType;
       required?: boolean;
