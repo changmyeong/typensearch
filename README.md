@@ -123,14 +123,14 @@ await user.save(true);
 await user.delete();
 
 // Search with OpenSearch filter query
+// Set document size to 10
 await User.search({
   query: {
     bool: {
       // ...
     },
   },
-  size: 10,
-});
+}, 10);
 
 // You can use OpenSearch client directly for unsupported methods.
 await opensearchClient.bulk({ body });
