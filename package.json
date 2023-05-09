@@ -1,6 +1,6 @@
 {
   "name": "typensearch",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Awesome OpenSearch model using TypeScript classes.",
   "main": "dist/index.js",
   "scripts": {
@@ -21,7 +21,11 @@
     "query",
     "scan",
     "object",
-    "storage"
+    "storage",
+    "decorator",
+    "mapping",
+    "elasticsearch",
+    "typescript"
   ],
   "author": {
     "name": "changmyeong",

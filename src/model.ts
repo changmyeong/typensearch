@@ -115,6 +115,22 @@ export abstract class Model {
     }
   }
 
+  public static async search<T extends Model>(this: new() => T, body: Record<string, any>, size?: number) {
+    if (!opensearchClient) {
+      throw new Error('[typesearch] You have to call `initialize` method first');
+    }
+
+    const metadata = indexMetadataMap.get(this);
+
+    const result = await opensearchClient.search({
+      index: metadata.name,
+      body,
+      size,
+    });
+
+    return result.body;
+  }
+
   public async save(refresh?: boolean): Promise<void> {
     if (!opensearchClient) {
       throw new Error('[typesearch] You have to call `initialize` method first');

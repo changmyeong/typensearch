@@ -122,6 +122,16 @@ await user.save(true);
 // Delete a document
 await user.delete();
 
+// Search with OpenSearch filter query
+await User.search({
+  query: {
+    bool: {
+      // ...
+    },
+  },
+  size: 10,
+});
+
 // You can use OpenSearch client directly for unsupported methods.
 await opensearchClient.bulk({ body });
 ```
@@ -185,6 +195,11 @@ await opensearchClient.bulk({ body });
 - Save the current document.
 - Refresh the index if `refresh` is true.
 - Returns undefined if success
+
+### `Model.search(body: QueryObject, size?: number)`
+
+- Search the index.
+- OpenSearch API response will be returned.
 
 ## Contributing
 
