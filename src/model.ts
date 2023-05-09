@@ -128,7 +128,7 @@ export abstract class Model {
       size,
     });
 
-    return result.body;
+    return result;
   }
 
   public async save(refresh?: boolean): Promise<void> {
