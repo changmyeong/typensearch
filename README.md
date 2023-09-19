@@ -43,7 +43,7 @@ import {
 initialize(
   { node: 'http://localhost:9200' },
   // Models decorated with OpenSearchIndex
-  { createIndexIfNotExists: [ User.prototype ] },
+  { createIndexesIfNotExists: [ User.prototype ] },
 });
 
 @OpenSearchIndex({
