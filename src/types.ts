@@ -38,6 +38,9 @@ export interface BaseFieldOptions {
   type: FieldType;
   required?: boolean;
   default?: any;
+  fields?: {
+    [fieldName: string]: FieldOptions;
+  };
 }
 
 export interface TextFieldOptions extends BaseFieldOptions {
@@ -75,7 +78,6 @@ export interface KeywordFieldOptions extends BaseFieldOptions {
   boost?: number;
   docValues?: boolean;
   eagerGlobalOrdinals?: boolean;
-  fields?: string | string[];
   ignoreAbove?: number;
   index?: boolean | 'no' | 'analyzed' | 'not_analyzed' | 'no';
   indexOptions?: 'docs' | 'freqs';
@@ -278,6 +280,9 @@ export interface IndexMetadata {
       required?: boolean;
       default?: any;
       options?: Partial<FieldOptions>;
+      fields?: {
+        [fieldName: string]: FieldOptions;
+      };
     };
   };
 }

@@ -1,6 +1,6 @@
 {
   "name": "typensearch",
-  "version": "1.0.15",
+  "version": "1.0.30",
   "description": "Awesome OpenSearch model using TypeScript classes.",
   "main": "dist/index.js",
   "scripts": {
