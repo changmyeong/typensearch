@@ -35,7 +35,7 @@ export const initialize = async (
     }
 
     await opensearchClient.indices.get({ index: metadata.name }).catch((error) => {
-      if (error.meta.body.error.type === 'index_not_found_exception') {
+      if (error?.meta?.body?.error?.type === 'index_not_found_exception') {
         opensearchClient.indices.create({
           index: metadata.name,
           body: {
