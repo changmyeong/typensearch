@@ -107,7 +107,7 @@ export interface ObjectFieldOptions extends BaseFieldOptions {
   default?: object;
   dynamic?: boolean | 'strict';
   enabled?: boolean;
-  properties: Record<string, BaseFieldOptions>;
+  properties: Record<string, FieldOptions>;
 }
 
 export interface NestedFieldOptions extends BaseFieldOptions {
@@ -116,7 +116,7 @@ export interface NestedFieldOptions extends BaseFieldOptions {
   dynamic?: boolean | 'strict';
   includeInParent?: boolean;
   includeInRoot?: boolean;
-  properties: Record<string, BaseFieldOptions>;
+  properties: Record<string, FieldOptions>;
 }
 
 export interface IPFieldOptions extends BaseFieldOptions {
