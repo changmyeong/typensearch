@@ -96,27 +96,27 @@ class User extends Model {
 ```typescript
 // Create a document
 const newUser = await User.index({
-  _id: 'user1',
-  username: 'john_doe',
-  email: 'john.doe@example.com',
-  birthdate: new Date('1990-01-01'),
+  _id: "user1",
+  username: "john_doe",
+  email: "john.doe@example.com",
+  birthdate: new Date("1990-01-01"),
 });
 
 // Update multiple documents
 const updatedDocs = await User.updateMany(
-  { username: 'john_doe' },
-  { email: 'john.doe2@example.com' },
+  { username: "john_doe" },
+  { email: "john.doe2@example.com" }
 );
 
 // Delete multiple documents
-const deletedDocs = await User.deleteMany({ username: 'john_doe' });
+const deletedDocs = await User.deleteMany({ username: "john_doe" });
 
 // Get a document by ID
-const user = await User.get('user1');
+const user = await User.get("user1");
 
 // Change fields of the document and save it.
-user.username = 'alice';
-user.email = 'alice@bitcoin.com';
+user.username = "alice";
+user.email = "alice@bitcoin.com";
 await user.save(true);
 
 // Delete a document
@@ -124,13 +124,25 @@ await user.delete();
 
 // Search with OpenSearch filter query
 // Set document size to 10
-await User.search({
+await User.search(
+  {
+    query: {
+      bool: {
+        // ...
+      },
+    },
+  },
+  10
+);
+
+// Count the number of documents matching the query
+const count = await User.count({
   query: {
     bool: {
       // ...
     },
   },
-}, 10);
+});
 
 // You can use OpenSearch client directly for unsupported methods.
 await opensearchClient.bulk({ body });
@@ -200,6 +212,11 @@ await opensearchClient.bulk({ body });
 
 - Search the index.
 - OpenSearch API response will be returned.
+
+### `Model.count(body: Record<string, any>): Promise<number>`
+
+- Count the number of documents matching the query.
+- Returns the count of documents.
 
 ## Contributing
 
