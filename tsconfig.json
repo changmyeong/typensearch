@@ -7,37 +7,25 @@
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": [
-      "es6",
-      "es7",
-      "es5",
-      "esnext"
-    ],
+    "lib": ["es6", "es7", "es5", "esnext"],
     "sourceMap": true,
     "pretty": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
     "noImplicitThis": false,
     "noFallthroughCasesInSwitch": true,
+    "strictPropertyInitialization": false,
+    "useDefineForClassFields": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules"
-    ],
-    "types": [
-      "node"
-    ],
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "types": ["node", "jest"],
     "outDir": "dist"
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
+  "include": ["src/**/*", "src/__tests__/**/*", "examples/**/*"],
+  "exclude": ["node_modules", "dist"],
   "compileOnSave": false
 }

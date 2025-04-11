@@ -1,14 +1,15 @@
 # TypenSearch
 
-TypenSearch is a simple and lightweight Object Document Mapper (ODM) for OpenSearch, designed to help developers easily interact with OpenSearch indices by defining schemas, managing indices, and performing CRUD operations. It is inspired by Typegoose, a popular MongoDB ODM, and is suitable for developers familiar with TypeScript.
+TypenSearch is a simple and powerful Object Document Mapper (ODM) for OpenSearch, designed to help developers easily interact with OpenSearch indices using TypeScript. Inspired by Typegoose, it brings the power of TypeScript decorators to OpenSearch, making it more intuitive and type-safe.
 
 ## Features
 
-- Define schemas with decorators
-- Automatically manage indices
-- Perform CRUD operations
-- Supports custom field options
-- TypeScript support
+- 🎯 Intuitive schema definition with TypeScript decorators
+- 🚀 Automatic index management and mapping
+- ⚡ Type-safe CRUD operations
+- 🛠 Custom field options support
+- 📝 Automatic timestamps (createdAt, updatedAt)
+- 🔍 Powerful search capabilities
 
 ## Installation
 
@@ -16,71 +17,84 @@ TypenSearch is a simple and lightweight Object Document Mapper (ODM) for OpenSea
 npm install --save typensearch
 ```
 
-## Usage
+## Quick Start
 
-1. Define a schema for your document:
+### 1. OpenSearch Connection Setup
+
+```typescript
+import { initialize } from "typensearch";
+
+await initialize(
+  {
+    node: "http://localhost:9200",
+    // Additional OpenSearch client options
+    auth: {
+      username: "admin",
+      password: "admin",
+    },
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  },
+  {
+    createIndexesIfNotExists: [User.prototype],
+    // Additional TypenSearch options
+    debug: true,
+  }
+);
+```
+
+### 2. Model Definition
 
 ```typescript
 import {
   OpenSearchIndex,
   Field,
-  DocumentId,
   CreatedAt,
   UpdatedAt,
   Model,
-  initialize,
-  opensearchClient,
-} from 'typensearch';
-
-/**
- * Initializes the TypenSearch
- *
- * @param {Object} opensearchClientOptions - The options for the OpenSearch client.
- * @param {Object} typensearchOptions - The options for TypenSearch.
- * @returns {Promise<void>} A Promise that resolves when the initialization is complete.
- */
-
-initialize(
-  { node: 'http://localhost:9200' },
-  // Models decorated with OpenSearchIndex
-  { createIndexesIfNotExists: [ User.prototype ] },
-});
+} from "typensearch";
 
 @OpenSearchIndex({
-  name: 'user',
+  name: "users", // Index name (optional, defaults to lowercase class name)
   numberOfShards: 2,
   numberOfReplicas: 1,
+  settings: {
+    // Additional index settings
+    "index.mapping.total_fields.limit": 2000,
+  },
 })
 class User extends Model {
-  @Field({ type: 'text', required: true })
+  @Field({
+    type: "text",
+    required: true,
+    fields: {
+      keyword: { type: "keyword" }, // Multi-fields configuration
+    },
+  })
   username: string;
 
-  @Field({ type: 'keyword', required: true })
+  @Field({
+    type: "keyword",
+    required: true,
+    validate: (value: string) => {
+      return /^[^@]+@[^@]+\.[^@]+$/.test(value);
+    },
+  })
   email: string;
 
   @Field({
-    type: 'date',
-    boost: 3,
-    default: Date.now,
-  })
-  birthdate: Date;
-
-  @Field({ type: 'integer', default: 0 })
-  followerCount: number;
-
-  @Field({
-    type: 'object',
-    required: true,
+    type: "object",
     properties: {
-      country: { type: 'keyword', required: false },
-      address: { type: 'keyword', required: true },
-      nickname: { type: 'keyword', required: true },
+      street: { type: "text" },
+      city: { type: "keyword" },
+      country: { type: "keyword" },
     },
   })
-  others: {
-    country?: string;
-    address: string;
-    nickname: string;
+  address?: {
+    street: string;
+    city: string;
+    country: string;
   };
 
   @CreatedAt()
@@ -91,140 +105,583 @@ class User extends Model {
 }
 ```
 
-2. Perform CRUD operations:
+### 3. CRUD Operations
 
 ```typescript
 // Create a document
-const newUser = await User.index({
-  _id: "user1",
+const user = await User.index({
   username: "john_doe",
   email: "john.doe@example.com",
-  birthdate: new Date("1990-01-01"),
+  address: {
+    street: "123 Main St",
+    city: "New York",
+    country: "USA",
+  },
 });
 
-// Update multiple documents
-const updatedDocs = await User.updateMany(
-  { username: "john_doe" },
-  { email: "john.doe2@example.com" }
-);
-
-// Delete multiple documents
-const deletedDocs = await User.deleteMany({ username: "john_doe" });
-
-// Get a document by ID
-const user = await User.get("user1");
-
-// Change fields of the document and save it.
-user.username = "alice";
-user.email = "alice@bitcoin.com";
-await user.save(true);
-
-// Delete a document
-await user.delete();
-
-// Search with OpenSearch filter query
-// Set document size to 10
-await User.search(
-  {
-    query: {
-      bool: {
-        // ...
+// Create/Update multiple documents using bulk operation
+const bulkResponse = await User.bulkIndex(
+  [
+    {
+      username: "john_doe",
+      email: "john.doe@example.com",
+      address: {
+        street: "123 Main St",
+        city: "New York",
+        country: "USA",
       },
     },
-  },
-  10
+    {
+      _id: "existing_user", // Update if ID exists
+      username: "jane_doe",
+      email: "jane.doe@example.com",
+    },
+  ],
+  { refresh: true }
 );
 
-// Count the number of documents matching the query
-const count = await User.count({
-  query: {
-    bool: {
-      // ...
-    },
-  },
+// Delete multiple documents using bulk operation
+await User.bulkDelete(["user1", "user2", "user3"], { refresh: true });
+
+// Get document by ID
+const foundUser = await User.get("user_id");
+
+// Update document
+foundUser.username = "jane_doe";
+await foundUser.save();
+
+// Update multiple documents
+await User.updateMany(
+  { city: "New York" }, // search condition
+  { country: "US" } // fields to update
+);
+
+// Search (using query builder)
+const users = await User.query<User>()
+  .match("username", "john", { operator: "AND" })
+  .bool((q) =>
+    q
+      .must("address.city", "New York")
+      .should("tags", ["developer", "typescript"])
+      .filter("createdAt", { gte: "now-7d" })
+  )
+  .sort("createdAt", "desc")
+  .from(0)
+  .size(10)
+  .execute();
+
+// Delete document
+await foundUser.delete();
+
+// Delete multiple documents
+await User.deleteMany({
+  "address.country": "USA",
 });
 
-// You can use OpenSearch client directly for unsupported methods.
-await opensearchClient.bulk({ body });
+// Count documents
+const count = await User.count({
+  query: {
+    term: { "address.city": "New York" },
+  },
+});
 ```
 
-## API
+### 4. Schema Migration
 
-### `OpenSearchIndex(options: IndexOptions): ClassDecorator`
+TypenSearch provides powerful schema migration capabilities to help you manage changes to your index mappings safely and efficiently.
 
-- Decorator to define an OpenSearch index and map it to a class.
-- `IndexOptions.name`: Set the index name. It uses String.toLowerCase() internally. default is the name of the class.
-- `IndexOptions.numberOfShards`: Set the shard number
-- `IndexOptions.numberOfReplicas`: Set the replica number
+```typescript
+// Basic Migration Example
+@OpenSearchIndex({
+  name: "users",
+  settings: {
+    "index.mapping.total_fields.limit": 2000,
+  },
+})
+class User extends Model {
+  @Field({ type: "keyword" })
+  name: string;
 
-### `Field(options: FieldOptions): PropertyDecorator`
+  @Field({ type: "integer" })
+  age: number;
+}
 
-- Decorator to define a field in the schema.
-- Supports various field options.
+// Adding new fields
+@OpenSearchIndex({
+  name: "users",
+  settings: {
+    "index.mapping.total_fields.limit": 2000,
+  },
+})
+class UpdatedUser extends Model {
+  @Field({ type: "keyword" })
+  name: string;
 
-### `CreatedAt(): PropertyDecorator`
+  @Field({ type: "integer" })
+  age: number;
 
-- Decorator to define a createdAt field with a date type.
+  @Field({ type: "text" })
+  description: string;
 
-### `UpdatedAt(): PropertyDecorator`
+  @Field({ type: "date" })
+  createdAt: Date;
+}
 
-- Decorator to define an updatedAt field with a date type.
+// Check migration plan
+const plan = await UpdatedUser.planMigration();
+console.log("Migration Plan:", {
+  addedFields: plan.addedFields,
+  modifiedFields: plan.modifiedFields,
+  deletedFields: plan.deletedFields,
+  requiresReindex: plan.requiresReindex,
+  estimatedDuration: plan.estimatedDuration,
+});
 
-### `Model.index<T>(doc: Partial<T>, refresh?: boolean): Promise<T>`
+// Execute migration
+const result = await UpdatedUser.migrate();
 
-- Index a document.
-- Refresh the index if `refresh` is true.
-- OpenSearch API response will be returned.
+// Safe Migration with Backup and Rollback
+const result = await UpdatedUser.migrate({
+  backup: true,
+  waitForCompletion: true,
+});
 
-### `Model.updateMany<T>(query: Partial<T>, updates: Partial<T>, options?: UpdateOptions): Promise<ApiResponse>`
+if (!result.success) {
+  const rollback = await UpdatedUser.rollback(result.migrationId);
+}
 
-- Update multiple documents matching the query.
-- Supports various update options.
-- OpenSearch API response will be returned.
+// Large Dataset Migration
+const result = await UpdatedUser.migrate({
+  backup: true,
+  waitForCompletion: false,
+  timeout: "1h",
+});
 
-### `Model.deleteMany<T>(query: Partial<T>, options?: DeleteOptions): Promise<ApiResponse>`
+// Check Migration History
+const history = await UpdatedUser.getMigrationHistory();
+```
 
-- Delete multiple documents matching the query.
-- Supports various delete options.
-- OpenSearch API response will be returned.
+#### Migration Options
 
-### `Model.get<T>(id: string): Promise<T | null>`
+```typescript
+interface MigrationOptions {
+  dryRun?: boolean; // Test migration without applying changes
+  backup?: boolean; // Create backup before migration
+  waitForCompletion?: boolean; // Wait for migration to complete
+  timeout?: string; // Migration timeout
+  batchSize?: number; // Number of documents to process in each batch
+}
+```
 
-- Get a document by ID.
-- Returns null if the document does not exist.
+## API Reference
 
-### `Model.delete<T>(id: string, refresh?: boolean): Promise<void>`
+### Decorators
 
-- Delete a document matching the id.
-- Returns undefined if success
+#### @OpenSearchIndex(options: IndexOptions)
 
-### `model.delete(refresh?: boolean): Promise<ApiResponse>`
+Defines index settings.
 
-- Delete the current document.
+```typescript
+interface IndexOptions {
+  name?: string; // Index name
+  numberOfShards?: number; // Number of shards
+  numberOfReplicas?: number; // Number of replicas
+  settings?: Record<string, unknown>; // Additional index settings
+}
+```
 
-### `model.save(refresh?: boolean): Promise<void>`
+#### @Field(options: FieldOptions)
 
-- Save the current document.
-- Refresh the index if `refresh` is true.
-- Returns undefined if success
+Defines field type and properties.
 
-### `Model.search(body: QueryObject, size?: number)`
+```typescript
+interface FieldOptions<T> {
+  type: string;
+  required?: boolean;
+  default?: T;
+  boost?: number;
+  fields?: Record<string, unknown>;
+  properties?: Record<string, FieldOptions<unknown>>;
+  validate?: (value: T) => boolean;
+}
+```
 
-- Search the index.
-- OpenSearch API response will be returned.
+### Model Methods
 
-### `Model.count(body: Record<string, any>): Promise<number>`
+All methods return Promises.
 
-- Count the number of documents matching the query.
-- Returns the count of documents.
+#### Static Methods
+
+- `Model.index<T>(doc: Partial<T>, refresh?: boolean)`: Create a new document
+- `Model.get<T>(id: string)`: Get document by ID
+- `Model.updateMany<T>(query: any, updates: Partial<T>, options?: UpdateOptions)`: Update multiple documents
+- `Model.deleteMany(query: any)`: Delete multiple documents
+- `Model.search(body: any, size?: number)`: Search documents with raw query
+- `Model.count(body: any)`: Count documents
+- `Model.bulkIndex<T>(docs: Partial<T>[], options?: BulkOptions)`: Create or update multiple documents in one operation
+- `Model.bulkDelete(ids: string[], options?: BulkOptions)`: Delete multiple documents by their IDs
+- `Model.planMigration()`: Generate schema change plan
+- `Model.migrate(options?: MigrationOptions)`: Execute schema changes
+- `Model.rollback(migrationId: string)`: Rollback a migration
+- `Model.getMigrationHistory()`: Get migration history
+- `Model.getMapping()`: Get current index mapping with all field options
+- `Model.query<T>()`: Get a new query builder instance
+
+#### Instance Methods
+
+- `save(refresh?: boolean)`: Save current document
+- `delete(refresh?: boolean)`: Delete current document
+- `validate()`: Validate document against schema rules
+
+### Query Builder
+
+Provides a type-safe query builder for writing OpenSearch queries.
+
+#### Basic Queries
+
+```typescript
+// Match query
+const results = await User.query<User>()
+  .match("username", "john", {
+    operator: "AND",
+    fuzziness: "AUTO",
+  })
+  .execute();
+
+// Term query
+const results = await User.query<User>()
+  .term("age", 25, {
+    boost: 2.0,
+  })
+  .execute();
+
+// Range query
+const results = await User.query<User>()
+  .range("age", {
+    gte: 20,
+    lte: 30,
+  })
+  .execute();
+```
+
+#### Boolean Queries
+
+```typescript
+const results = await User.query<User>()
+  .bool((q) =>
+    q
+      .must("role", "admin")
+      .mustNot("status", "inactive")
+      .should("tags", ["developer", "typescript"])
+      .filter("age", { gte: 20, lte: 30 })
+  )
+  .execute();
+```
+
+#### Search Options
+
+```typescript
+const results = await User.query<User>()
+  .match("username", "john")
+  // Sorting
+  .sort("createdAt", "desc")
+  .sort("username", { order: "asc", missing: "_last" })
+  // Pagination
+  .from(0)
+  .size(10)
+  // Field filtering
+  .source({
+    includes: ["username", "email", "age"],
+    excludes: ["password"],
+  })
+  // Additional options
+  .timeout("5s")
+  .trackTotalHits(true)
+  .execute();
+```
+
+#### Query Options
+
+##### MatchQueryOptions
+
+```typescript
+{
+  operator?: "OR" | "AND";
+  minimum_should_match?: number | string;
+  fuzziness?: number | "AUTO";
+  prefix_length?: number;
+  max_expansions?: number;
+  fuzzy_transpositions?: boolean;
+  lenient?: boolean;
+  zero_terms_query?: "none" | "all";
+  analyzer?: string;
+}
+```
+
+##### TermQueryOptions
+
+```typescript
+{
+  boost?: number;
+  case_insensitive?: boolean;
+}
+```
+
+##### RangeQueryOptions
+
+```typescript
+{
+  gt?: number | string | Date;
+  gte?: number | string | Date;
+  lt?: number | string | Date;
+  lte?: number | string | Date;
+  format?: string;
+  relation?: "INTERSECTS" | "CONTAINS" | "WITHIN";
+  time_zone?: string;
+}
+```
+
+##### SortOptions
+
+```typescript
+{
+  order?: "asc" | "desc";
+  mode?: "min" | "max" | "sum" | "avg" | "median";
+  missing?: "_last" | "_first" | any;
+}
+```
+
+#### Geo Queries
+
+```typescript
+// Geo Distance Query
+const results = await User.query<User>()
+  .geoDistance("location", {
+    distance: "200km",
+    point: {
+      lat: 40.73,
+      lon: -73.93,
+    },
+  })
+  .execute();
+
+// Geo Bounding Box Query
+const results = await User.query<User>()
+  .geoBoundingBox("location", {
+    topLeft: {
+      lat: 40.73,
+      lon: -74.1,
+    },
+    bottomRight: {
+      lat: 40.01,
+      lon: -73.86,
+    },
+  })
+  .execute();
+```
+
+## Error Handling
+
+TypenSearch may throw the following errors:
+
+```typescript
+try {
+  await user.save();
+} catch (error) {
+  if (error instanceof ValidationError) {
+    // Validation failed
+    console.error("Validation failed:", error.message);
+  } else if (error instanceof ConnectionError) {
+    // OpenSearch connection failed
+    console.error("Connection failed:", error.message);
+  } else {
+    // Other errors
+    console.error("Unknown error:", error);
+  }
+}
+```
+
+## Best Practices
+
+### Index Settings Optimization
+
+```typescript
+@OpenSearchIndex({
+  name: 'products',
+  settings: {
+    'index.mapping.total_fields.limit': 2000,
+    'index.number_of_shards': 3,
+    'index.number_of_replicas': 1,
+    'index.refresh_interval': '5s',
+    analysis: {
+      analyzer: {
+        my_analyzer: {
+          type: 'custom',
+          tokenizer: 'standard',
+          filter: ['lowercase', 'stop', 'snowball']
+        }
+      }
+    }
+  }
+})
+```
+
+### Efficient Searching
+
+```typescript
+const results = await Product.search({
+  _source: ["name", "price"], // Only fetch needed fields
+  query: {
+    bool: {
+      must: [{ match: { name: "phone" } }],
+      filter: [{ range: { price: { gte: 100, lte: 200 } } }],
+    },
+  },
+  sort: [{ price: "asc" }],
+  from: 0,
+  size: 20,
+});
+```
+
+### Migration Best Practices
+
+1. Always test with `dryRun` first
+2. Use `backup: true` option for important changes
+3. Set `waitForCompletion: false` for large datasets and run in background
+4. Monitor migration progress using `getMigrationHistory()`
 
 ## Contributing
 
-1. **Fork** the repository to your GitHub account.
-2. **Clone** your forked repository locally.
-3. **Create a branch** for your feature or bugfix.
-4. **Install dependencies** with `npm install`.
-5. **Implement** your changes and follow the project's coding style.
-6. **Commit** your changes with a clear and concise message.
-7. **Push** your changes to your forked repository.
-8. **Submit a pull request** to the original repository.
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/something-new`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/something-new`
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- Report bugs and request features through issues
+- Contribute code through pull requests
+- Suggest documentation improvements
+- Share use cases
+
+#### Aggregations
+
+TypenSearch provides powerful aggregation capabilities for data analysis.
+
+```typescript
+// Metric Aggregations
+const results = await User.query<User>()
+  .match("role", "developer")
+  .aggs(
+    "age_stats",
+    (a) => a.stats("age") // Calculate statistics (min, max, avg, sum)
+  )
+  .aggs(
+    "avg_salary",
+    (a) => a.avg("salary") // Calculate average
+  )
+  .execute();
+
+// Bucket Aggregations
+const results = await User.query<User>()
+  .aggs(
+    "job_categories",
+    (a) =>
+      a
+        .terms("job_title") // Group by job title
+        .subAggs("avg_age", (sa) => sa.avg("age")) // Add sub-aggregation
+  )
+  .execute();
+
+// Date Histogram Aggregation
+const results = await User.query<User>()
+  .aggs("signups_over_time", (a) =>
+    a.dateHistogram("createdAt", {
+      interval: "1d", // Daily intervals
+      format: "yyyy-MM-dd",
+    })
+  )
+  .execute();
+
+// Range Aggregation
+const results = await User.query<User>()
+  .aggs("salary_ranges", (a) =>
+    a.range("salary", [
+      { to: 50000 },
+      { from: 50000, to: 100000 },
+      { from: 100000 },
+    ])
+  )
+  .execute();
+
+// Nested Aggregations
+const results = await User.query<User>()
+  .aggs("job_categories", (a) =>
+    a
+      .terms("job_title")
+      .subAggs("experience_stats", (sa) =>
+        sa
+          .stats("years_of_experience")
+          .subAggs("salary_stats", (ssa) => ssa.stats("salary"))
+      )
+  )
+  .execute();
+```
+
+#### Aggregation Options
+
+##### MetricAggregationOptions
+
+```typescript
+interface MetricAggregationOptions {
+  field: string;
+  script?: string;
+  missing?: unknown;
+}
+```
+
+##### BucketAggregationOptions
+
+```typescript
+interface BucketAggregationOptions {
+  field: string;
+  size?: number;
+  minDocCount?: number;
+  order?: {
+    [key: string]: "asc" | "desc";
+  };
+  missing?: unknown;
+}
+```
+
+##### DateHistogramAggregationOptions
+
+```typescript
+interface DateHistogramAggregationOptions {
+  field: string;
+  interval?: string;
+  format?: string;
+  timeZone?: string;
+  minDocCount?: number;
+  missing?: unknown;
+}
+```
+
+##### RangeAggregationOptions
+
+```typescript
+interface RangeAggregationOptions {
+  field: string;
+  ranges: Array<{
+    key?: string;
+    from?: number;
+    to?: number;
+  }>;
+  keyed?: boolean;
+}
+```

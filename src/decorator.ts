@@ -1,23 +1,31 @@
-import { FieldOptions, IndexMetadata, IndexOptions } from './types';
+import { FieldOptions, IndexMetadata, IndexOptions } from "./types";
 
 export const indexMetadataMap = new Map<Function, IndexMetadata>();
+
 export function Field(options?: FieldOptions): PropertyDecorator {
   return function (target: any, propertyKey: string) {
-    const metadata: IndexMetadata = indexMetadataMap.get(target.constructor) || {
+    const metadata: IndexMetadata = indexMetadataMap.get(
+      target.constructor
+    ) || {
       properties: {},
     };
-    options = options || {
-      type: 'keyword',
-      required: false,
-    } as FieldOptions;
 
-    const { type, required, ...fieldOptions } = options;
+    options =
+      options ||
+      ({
+        type: "keyword",
+        required: false,
+      } as FieldOptions);
+
+    const { type, required, properties, validate, ...fieldOptions } = options;
     delete fieldOptions.default;
 
     metadata.properties[propertyKey] = {
       type,
       required,
       default: options.default,
+      properties,
+      validate,
       options: fieldOptions,
     };
 
@@ -26,21 +34,23 @@ export function Field(options?: FieldOptions): PropertyDecorator {
 }
 
 export function CreatedAt(): PropertyDecorator {
-  return Field({ type: 'date', default: Date.now });
+  return Field({ type: "date" });
 }
 
 export function UpdatedAt(): PropertyDecorator {
-  return Field({ type: 'date', default: Date.now });
+  return Field({ type: "date" });
 }
 
 export function OpenSearchIndex(options?: IndexOptions): ClassDecorator {
   return function (constructor: Function) {
-    // for setting index name and node
+    const existingMetadata = indexMetadataMap.get(constructor) || {
+      properties: {},
+    };
     indexMetadataMap.set(constructor, {
-      ...indexMetadataMap.get(constructor),
-      name: (options.name || constructor.name).toLowerCase(),
-      numberOfShards: options.numberOfShards || 2,
-      numberOfReplicas: options.numberOfReplicas || 1,
+      ...existingMetadata,
+      name: (options?.name || constructor.name).toLowerCase(),
+      numberOfShards: options?.numberOfShards || 2,
+      numberOfReplicas: options?.numberOfReplicas || 1,
     });
   };
 }

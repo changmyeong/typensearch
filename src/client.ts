@@ -14,11 +14,11 @@ export const initialize = async (
   typensearchOptions?: {
     createIndexesIfNotExists?: Model[];
   }
-): Promise<void> => {
+): Promise<Client> => {
   opensearchClient = new Client(opensearchClientOptions);
 
   if (!typensearchOptions?.createIndexesIfNotExists) {
-    return;
+    return opensearchClient;
   }
 
   for (const Model of typensearchOptions?.createIndexesIfNotExists) {
@@ -27,11 +27,9 @@ export const initialize = async (
     const { id, ...propertiesWithoutId } = metadata.properties;
 
     for (const [propertyName, values] of Object.entries(propertiesWithoutId)) {
-      const { type, options } = values;
-      mappingProperties[propertyName] = {
-        type,
-        ...convertOptionsToMappingProperties(options),
-      };
+      const { __meta, ...mappingOptions } = values;
+      mappingProperties[propertyName] =
+        convertOptionsToMappingProperties(mappingOptions);
     }
 
     await opensearchClient.indices
@@ -57,4 +55,6 @@ export const initialize = async (
         }
       });
   }
+
+  return opensearchClient;
 };
