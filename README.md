@@ -8,7 +8,6 @@ TypenSearch is a simple and powerful Object Document Mapper (ODM) for OpenSearch
 - 🚀 Automatic index management and mapping
 - ⚡ Type-safe CRUD operations
 - 🛠 Custom field options support
-- 📝 Automatic timestamps (createdAt, updatedAt)
 - 🔍 Powerful search capabilities
 
 ## Installation
@@ -45,13 +44,7 @@ await initialize(
 ### 2. Model Definition
 
 ```typescript
-import {
-  OpenSearchIndex,
-  Field,
-  CreatedAt,
-  UpdatedAt,
-  Model,
-} from "typensearch";
+import { OpenSearchIndex, Field, Model } from "typensearch";
 
 @OpenSearchIndex({
   name: "users", // Index name (optional, defaults to lowercase class name)
@@ -94,12 +87,6 @@ class User extends Model {
     city: string;
     country: string;
   };
-
-  @CreatedAt()
-  createdAt: Date;
-
-  @UpdatedAt()
-  updatedAt: Date;
 }
 ```
 
@@ -161,9 +148,8 @@ const users = await User.query<User>()
     q
       .must("address.city", "New York")
       .should("tags", ["developer", "typescript"])
-      .filter("createdAt", { gte: "now-7d" })
   )
-  .sort("createdAt", "desc")
+  .sort("username", "desc")
   .from(0)
   .size(10)
   .execute();
@@ -220,9 +206,6 @@ class UpdatedUser extends Model {
 
   @Field({ type: "text" })
   description: string;
-
-  @Field({ type: "date" })
-  createdAt: Date;
 }
 
 // Check migration plan

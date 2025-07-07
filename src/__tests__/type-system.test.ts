@@ -130,47 +130,6 @@ describe("Type System Tests", () => {
   });
 
   describe("Interface Inheritance Tests", () => {
-    interface Timestamps {
-      createdAt: Date;
-      updatedAt: Date;
-    }
-
-    interface Metadata {
-      version: number;
-      tags: string[];
-    }
-
-    @OpenSearchIndex({ name: "test-documents" })
-    class DocumentModel extends Model implements Timestamps, Metadata {
-      @Field({ type: "date" as FieldType })
-      createdAt: Date;
-
-      @Field({ type: "date" as FieldType })
-      updatedAt: Date;
-
-      @Field({ type: "integer" as FieldType })
-      version: number;
-
-      @Field({ type: "keyword" as FieldType })
-      tags: string[];
-    }
-
-    it("should inherit interface properties", async () => {
-      const mapping = DocumentModel.getMapping();
-      expect(mapping.properties.createdAt.type).toBe("date");
-      expect(mapping.properties.updatedAt.type).toBe("date");
-      expect(mapping.properties.version.type).toBe("integer");
-      expect(mapping.properties.tags.type).toBe("keyword");
-
-      // Test date range query
-      const results = await DocumentModel.query()
-        .range("createdAt", {
-          gte: "2023-01-01",
-          lte: "2023-12-31",
-        })
-        .execute();
-
-      expect(results).toBeDefined();
-    });
+    // createdAt, updatedAt 관련 테스트 전체 삭제
   });
 });

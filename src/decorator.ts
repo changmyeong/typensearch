@@ -33,14 +33,6 @@ export function Field(options?: FieldOptions): PropertyDecorator {
   };
 }
 
-export function CreatedAt(): PropertyDecorator {
-  return Field({ type: "date" });
-}
-
-export function UpdatedAt(): PropertyDecorator {
-  return Field({ type: "date" });
-}
-
 export function OpenSearchIndex(options?: IndexOptions): ClassDecorator {
   return function (constructor: Function) {
     const existingMetadata = indexMetadataMap.get(constructor) || {

@@ -215,9 +215,6 @@ describe("QueryBuilder", () => {
     @Field({ type: "keyword" })
     tags: string[];
 
-    @Field({ type: "date" })
-    createdAt: Date;
-
     @Field({ type: "nested" })
     address: {
       street: string;

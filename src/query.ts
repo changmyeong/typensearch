@@ -486,11 +486,6 @@ export class QueryBuilderImpl<T> implements QueryBuilder<T> {
       searchBody.query = { match_all: {} };
     }
 
-    console.log(
-      "[QueryBuilder] searchBody:",
-      JSON.stringify(searchBody, null, 2)
-    );
-
     const response = await this.client.search({
       index: this.indexName,
       body: searchBody,

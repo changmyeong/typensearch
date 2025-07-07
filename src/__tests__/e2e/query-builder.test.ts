@@ -12,9 +12,6 @@ class E2EUser extends Model {
   @Field({ type: "integer" })
   age!: number;
 
-  @Field({ type: "date" })
-  createdAt!: Date;
-
   @Field({
     type: "object",
     properties: {
@@ -45,7 +42,6 @@ describe("QueryBuilder E2E Tests", () => {
         username: "user1",
         email: "user1@example.com",
         age: 25,
-        createdAt: new Date("2023-01-01"),
         address: {
           street: "123 Main St",
           city: "New York",
@@ -56,7 +52,6 @@ describe("QueryBuilder E2E Tests", () => {
         username: "user2",
         email: "user2@example.com",
         age: 30,
-        createdAt: new Date("2023-02-01"),
         address: {
           street: "456 Oak Ave",
           city: "Los Angeles",
@@ -67,7 +62,6 @@ describe("QueryBuilder E2E Tests", () => {
         username: "user3",
         email: "user3@example.com",
         age: 35,
-        createdAt: new Date("2023-03-01"),
         address: {
           street: "789 Pine St",
           city: "Chicago",
