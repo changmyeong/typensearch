@@ -23,9 +23,15 @@
     "resolveJsonModule": true,
     "typeRoots": ["./node_modules/@types", "./node_modules"],
     "types": ["node", "jest"],
-    "outDir": "dist"
+    "outDir": "dist",
+    "strict": false
   },
-  "include": ["src/**/*", "src/__tests__/**/*", "examples/**/*"],
+  "include": [
+    "src/**/*",
+    "src/__tests__/**/*",
+    "examples/**/*",
+    "typensearch_examples/**/*"
+  ],
   "exclude": ["node_modules", "dist"],
   "compileOnSave": false
 }

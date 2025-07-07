@@ -5,16 +5,12 @@ import {
   MatchQueryOptions,
   TermQueryOptions,
   RangeQueryOptions,
-  BoolQueryOptions,
   SortOptions,
   SearchResult,
   MetricAggregationOptions,
   BucketAggregationOptions,
   DateHistogramAggregationOptions,
   RangeAggregationOptions,
-  NestedQueryOptions,
-  ExistsQueryOptions,
-  WildcardQueryOptions,
   FuzzyQueryOptions,
   PrefixQueryOptions,
   GeoDistanceOptions,
@@ -23,9 +19,6 @@ import {
   AggregationBuilder,
   SearchOptions,
 } from "./types";
-import { Model } from "./model";
-import { opensearchClient } from "./client";
-import { indexMetadataMap } from "./decorator";
 import { Client } from "@opensearch-project/opensearch";
 
 export class BooleanQueryBuilderImpl<T> implements BooleanQueryBuilder<T> {
@@ -355,24 +348,31 @@ export class QueryBuilderImpl<T> implements QueryBuilder<T> {
       this.query.aggs = {};
     }
 
-    // 기존 집계가 있는 경우
+    // 직전(마지막) 집계가 terms 집계라면, 해당 terms의 aggs에 서브 집계 추가
+    const aggNames = Object.keys(this.query.aggs);
+    if (aggNames.length > 0) {
+      const lastAggName = aggNames[aggNames.length - 1];
+      const lastAgg = this.query.aggs[lastAggName];
+      if (lastAgg && lastAgg.terms) {
+        if (!lastAgg.aggs) lastAgg.aggs = {};
+        lastAgg.aggs[name] = aggregation;
+        return this;
+      }
+    }
+
+    // 기존 집계가 있는 경우(기존 로직)
     if (this.query.aggs[name]) {
-      // terms 집계인 경우
       if (this.query.aggs[name].terms) {
-        // terms 집계의 aggs에 서브 집계 추가
         if (!this.query.aggs[name].aggs) {
           this.query.aggs[name].aggs = {};
         }
-        // 서브 집계의 각 메트릭을 개별적으로 추가
         Object.entries(aggregation).forEach(([key, value]) => {
           this.query.aggs[name].aggs[key] = value;
         });
       } else {
-        // 기존 집계에 새로운 집계 병합
         Object.assign(this.query.aggs[name], aggregation);
       }
     } else {
-      // 새로운 집계 추가
       this.query.aggs[name] = aggregation;
     }
 
@@ -482,6 +482,15 @@ export class QueryBuilderImpl<T> implements QueryBuilder<T> {
       ...this.searchOptions,
     };
 
+    if (!searchBody.query || Object.keys(searchBody.query).length === 0) {
+      searchBody.query = { match_all: {} };
+    }
+
+    console.log(
+      "[QueryBuilder] searchBody:",
+      JSON.stringify(searchBody, null, 2)
+    );
+
     const response = await this.client.search({
       index: this.indexName,
       body: searchBody,
@@ -541,6 +550,14 @@ export class AggregationBuilderImpl implements AggregationBuilder {
     this.aggregation = {
       ...this.aggregation,
       avg: { field },
+    };
+    return this;
+  }
+
+  min(field: string): AggregationBuilder {
+    this.aggregation = {
+      ...this.aggregation,
+      min: { field },
     };
     return this;
   }

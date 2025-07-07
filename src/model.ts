@@ -8,9 +8,6 @@ import {
   MigrationPlan,
   MigrationResult,
   MigrationHistory,
-  FieldOptions,
-  FieldType,
-  IndexMetadata,
   QueryBuilder,
 } from "./types";
 import { opensearchClient } from "./client";
@@ -26,8 +23,6 @@ import {
 import { QueryBuilderImpl } from "./query";
 import { BatchProcessor } from "./batch";
 import { Client } from "@opensearch-project/opensearch";
-import { MetadataStorage } from "./metadata";
-import { IndexOptions } from "./types";
 
 export abstract class Model {
   public _id: string | undefined;

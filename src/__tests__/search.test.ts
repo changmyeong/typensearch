@@ -1,6 +1,5 @@
 import { OpenSearchIndex, Field, Model } from "../index";
-import { FieldType, QueryBuilder, SearchResult } from "../types";
-import { Client } from "@opensearch-project/opensearch";
+import { FieldType } from "../types";
 import { opensearchClient } from "../client";
 
 // Mock the opensearchClient

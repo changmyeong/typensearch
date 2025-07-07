@@ -1,5 +1,3 @@
-import { ClientOptions } from "@opensearch-project/opensearch";
-
 export type FieldType =
   | "text"
   | "keyword"

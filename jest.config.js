@@ -1,8 +1,8 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  testMatch: ["**/__tests__/**/*.test.ts"],
-  moduleFileExtensions: ["ts", "js", "json"],
+  testMatch: ["**/src/**/*.test.ts"],
+  moduleFileExtensions: ["ts", "js"],
   transform: {
     "^.+\\.ts$": [
       "ts-jest",
@@ -11,6 +11,11 @@ module.exports = {
       },
     ],
   },
-  maxWorkers: 1,
-  testTimeout: 10000,
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.json",
+    },
+  },
+  testTimeout: 30000, // 30 seconds timeout
+  setupFilesAfterEnv: ["./jest.setup.js"],
 };

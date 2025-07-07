@@ -2,24 +2,13 @@ import { initialize } from "../client";
 import { Field, OpenSearchIndex, indexMetadataMap } from "../decorator";
 import { Model } from "../model";
 import { opensearchClient } from "../client";
-import {
-  getCurrentMapping,
-  compareSchemas,
-  createBackup,
-  executeMigration,
-  rollbackMigration,
-  getMigrationHistory,
-  MIGRATION_INDEX,
-} from "../migration";
-import { FieldType, IndexMetadata } from "../types";
+import { MIGRATION_INDEX } from "../migration";
 import "jest";
 
-// 데코레이터 모듈 모킹
 jest.mock("../decorator", () => {
   const originalModule = jest.requireActual("../decorator");
   const metadata = new Map();
 
-  // 실제 데코레이터 로직을 사용
   const Field = (options?: any): PropertyDecorator => {
     return function (target: any, propertyKey: string) {
       const constructor = target.constructor;
@@ -71,7 +60,6 @@ jest.mock("../decorator", () => {
       const meta = metadata.get(constructor);
       if (meta) return meta;
 
-      // 프로토타입 체인을 따라 메타데이터 검색
       if (constructor.prototype?.constructor) {
         return metadata.get(constructor.prototype.constructor);
       }
@@ -79,7 +67,6 @@ jest.mock("../decorator", () => {
     },
     set: (constructor: any, value: any) => {
       metadata.set(constructor, value);
-      // 프로토타입에도 메타데이터 설정
       if (constructor.prototype?.constructor) {
         metadata.set(constructor.prototype.constructor, value);
       }
@@ -95,7 +82,6 @@ jest.mock("../decorator", () => {
   };
 });
 
-// OpenSearch 클라이언트 모킹
 jest.mock("../client", () => {
   const existingIndices = new Set<string>();
 
@@ -378,7 +364,6 @@ describe("Migration", () => {
       expect(result.success).toBe(true);
       expect(result.backupIndex).toBeDefined();
 
-      // 백업 인덱스에 데이터가 있는지 확인
       const backupExists = await opensearchClient.indices.exists({
         index: result.backupIndex!,
       });
@@ -420,7 +405,6 @@ describe("Migration", () => {
     });
 
     it("should rollback migration", async () => {
-      // 초기 데이터 추가
       await InitialModel.index({ name: "Test" }, true);
 
       @OpenSearchIndex({ name: "test_migration_rollback" })
@@ -432,17 +416,14 @@ describe("Migration", () => {
         description: string;
       }
 
-      // 마이그레이션 실행
       const migrationResult = await ExtendedModel.migrate({ backup: true });
       expect(migrationResult.success).toBe(true);
 
-      // 새 필드에 데이터 추가
       await ExtendedModel.index(
         { name: "Test2", description: "Description" },
         true
       );
 
-      // search 모킹 수정
       const mockSearch = opensearchClient.search as jest.Mock;
       mockSearch.mockImplementationOnce(() => {
         return Promise.resolve({
@@ -478,13 +459,11 @@ describe("Migration", () => {
         });
       });
 
-      // 롤백 실행
       const rollbackResult = await ExtendedModel.rollback(
         migrationResult.migrationId
       );
       expect(rollbackResult.success).toBe(true);
 
-      // 롤백 후 상태 확인
       const mapping = await opensearchClient.indices.getMapping({
         index: "test_migration_rollback",
       });
@@ -492,14 +471,12 @@ describe("Migration", () => {
         mapping.body.test_migration_rollback.mappings.properties.description
       ).toBeUndefined();
 
-      // 원본 데이터만 존재하는지 확인
       const data = await opensearchClient.search({
         index: "test_migration_rollback",
       });
       expect(data.body.hits.total.value).toBe(1);
       expect(data.body.hits.hits[0]._source.name).toBe("Test");
 
-      // 롤백 이력 확인
       mockSearch.mockImplementationOnce(() => {
         return Promise.resolve({
           body: {
@@ -552,7 +529,6 @@ describe("Migration", () => {
 
   describe("Large Data Migration", () => {
     beforeEach(async () => {
-      // 각 테스트 전에 인덱스 초기화
       try {
         await opensearchClient.indices.delete({
           index: "test_migration_large_data",

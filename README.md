@@ -38,8 +38,6 @@ await initialize(
   },
   {
     createIndexesIfNotExists: [User.prototype],
-    // Additional TypenSearch options
-    debug: true,
   }
 );
 ```

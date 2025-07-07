@@ -1,4 +1,3 @@
-import { ApiResponse } from "@opensearch-project/opensearch";
 import { opensearchClient } from "./client";
 import { indexMetadataMap } from "./decorator";
 import {

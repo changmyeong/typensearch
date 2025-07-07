@@ -1,8 +1,6 @@
-import { opensearchClient, initialize } from "../client";
+import { initialize } from "../client";
 import { Field, OpenSearchIndex } from "../decorator";
 import { Model } from "../model";
-import { QueryBuilder, NestedQueryOptions } from "../types";
-import { QueryBuilderImpl } from "../query";
 import "jest";
 import { BatchProcessor } from "../batch";
 

@@ -5,9 +5,11 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "jest --testPathIgnorePatterns=src/__tests__/e2e/",
+    "test:watch": "jest --watch --testPathIgnorePatterns=src/__tests__/e2e/",
+    "test:coverage": "jest --coverage --testPathIgnorePatterns=src/__tests__/e2e/",
+    "test:e2e": "jest src/__tests__/e2e --testMatch=**/*.test.ts",
+    "test:e2e:watch": "jest src/__tests__/e2e --watch --testMatch=**/*.test.ts"
   },
   "repository": {
     "type": "git",
