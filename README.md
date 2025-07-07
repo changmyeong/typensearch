@@ -461,95 +461,6 @@ const results = await User.query<User>()
   .execute();
 ```
 
-## Error Handling
-
-TypenSearch may throw the following errors:
-
-```typescript
-try {
-  await user.save();
-} catch (error) {
-  if (error instanceof ValidationError) {
-    // Validation failed
-    console.error("Validation failed:", error.message);
-  } else if (error instanceof ConnectionError) {
-    // OpenSearch connection failed
-    console.error("Connection failed:", error.message);
-  } else {
-    // Other errors
-    console.error("Unknown error:", error);
-  }
-}
-```
-
-## Best Practices
-
-### Index Settings Optimization
-
-```typescript
-@OpenSearchIndex({
-  name: 'products',
-  settings: {
-    'index.mapping.total_fields.limit': 2000,
-    'index.number_of_shards': 3,
-    'index.number_of_replicas': 1,
-    'index.refresh_interval': '5s',
-    analysis: {
-      analyzer: {
-        my_analyzer: {
-          type: 'custom',
-          tokenizer: 'standard',
-          filter: ['lowercase', 'stop', 'snowball']
-        }
-      }
-    }
-  }
-})
-```
-
-### Efficient Searching
-
-```typescript
-const results = await Product.search({
-  _source: ["name", "price"], // Only fetch needed fields
-  query: {
-    bool: {
-      must: [{ match: { name: "phone" } }],
-      filter: [{ range: { price: { gte: 100, lte: 200 } } }],
-    },
-  },
-  sort: [{ price: "asc" }],
-  from: 0,
-  size: 20,
-});
-```
-
-### Migration Best Practices
-
-1. Always test with `dryRun` first
-2. Use `backup: true` option for important changes
-3. Set `waitForCompletion: false` for large datasets and run in background
-4. Monitor migration progress using `getMigrationHistory()`
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/something-new`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin feature/something-new`
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-- Report bugs and request features through issues
-- Contribute code through pull requests
-- Suggest documentation improvements
-- Share use cases
-
 #### Aggregations
 
 TypenSearch provides powerful aggregation capabilities for data analysis.
@@ -666,3 +577,92 @@ interface RangeAggregationOptions {
   keyed?: boolean;
 }
 ```
+
+## Error Handling
+
+TypenSearch may throw the following errors:
+
+```typescript
+try {
+  await user.save();
+} catch (error) {
+  if (error instanceof ValidationError) {
+    // Validation failed
+    console.error("Validation failed:", error.message);
+  } else if (error instanceof ConnectionError) {
+    // OpenSearch connection failed
+    console.error("Connection failed:", error.message);
+  } else {
+    // Other errors
+    console.error("Unknown error:", error);
+  }
+}
+```
+
+## Best Practices
+
+### Index Settings Optimization
+
+```typescript
+@OpenSearchIndex({
+  name: 'products',
+  settings: {
+    'index.mapping.total_fields.limit': 2000,
+    'index.number_of_shards': 3,
+    'index.number_of_replicas': 1,
+    'index.refresh_interval': '5s',
+    analysis: {
+      analyzer: {
+        my_analyzer: {
+          type: 'custom',
+          tokenizer: 'standard',
+          filter: ['lowercase', 'stop', 'snowball']
+        }
+      }
+    }
+  }
+})
+```
+
+### Efficient Searching
+
+```typescript
+const results = await Product.search({
+  _source: ["name", "price"], // Only fetch needed fields
+  query: {
+    bool: {
+      must: [{ match: { name: "phone" } }],
+      filter: [{ range: { price: { gte: 100, lte: 200 } } }],
+    },
+  },
+  sort: [{ price: "asc" }],
+  from: 0,
+  size: 20,
+});
+```
+
+### Migration Best Practices
+
+1. Always test with `dryRun` first
+2. Use `backup: true` option for important changes
+3. Set `waitForCompletion: false` for large datasets and run in background
+4. Monitor migration progress using `getMigrationHistory()`
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/something-new`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/something-new`
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- Report bugs and request features through issues
+- Contribute code through pull requests
+- Suggest documentation improvements
+- Share use cases
