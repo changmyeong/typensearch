@@ -139,14 +139,12 @@ export class BatchProcessor {
 
     const indexName = metadata.name!;
     docs.forEach((doc) => {
-      this.addOperation(
-        {
-          index: {
-            _index: indexName,
-          },
-        },
-        doc
-      );
+      const _id = (doc as any)._id;
+      const op: any = { index: { _index: indexName } };
+      if (typeof _id !== "undefined") op.index._id = _id;
+      const docBody = { ...(doc as any) };
+      if (typeof _id !== "undefined") delete docBody._id;
+      this.addOperation(op, docBody);
     });
 
     if (options.refresh) {

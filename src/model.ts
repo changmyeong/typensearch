@@ -64,7 +64,14 @@ export abstract class Model {
       }
     }
 
-    const { _id, ...others } = indexDoc;
+    // If _id is present in doc, pass it to OpenSearch as the id, and remove it from the body
+    const _id = (doc as any)._id;
+    const others = { ...indexDoc };
+    if (typeof _id !== "undefined") {
+      instance._id = _id;
+      delete others._id;
+    }
+
     const response = await opensearchClient
       .index({
         index: metadata.name,
