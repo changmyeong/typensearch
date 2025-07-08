@@ -481,46 +481,34 @@ const results = await User.query<User>()
 
 // Bucket Aggregations
 const results = await User.query<User>()
-  .aggs(
-    "job_categories",
-    (a) =>
-      a
-        .terms("job_title") // Group by job title
-        .subAggs("avg_age", (sa) => sa.avg("age")) // Add sub-aggregation
-  )
+  .terms("job_categories", { field: "job_title" }) // Group by job title
+  .aggs("avg_age", (a) => a.avg("age")) // Add sub-aggregation
   .execute();
 
 // Date Histogram Aggregation
 const results = await User.query<User>()
-  .aggs("signups_over_time", (a) =>
-    a.dateHistogram("createdAt", {
-      interval: "1d", // Daily intervals
-      format: "yyyy-MM-dd",
-    })
-  )
+  .dateHistogram("signups_over_time", {
+    field: "createdAt",
+    calendar_interval: "1d", // Daily intervals
+    format: "yyyy-MM-dd",
+  })
   .execute();
 
 // Range Aggregation
 const results = await User.query<User>()
-  .aggs("salary_ranges", (a) =>
-    a.range("salary", [
-      { to: 50000 },
-      { from: 50000, to: 100000 },
-      { from: 100000 },
-    ])
-  )
+  .rangeAggregation("salary_ranges", {
+    field: "salary",
+    ranges: [{ to: 50000 }, { from: 50000, to: 100000 }, { from: 100000 }],
+  })
   .execute();
 
 // Nested Aggregations
 const results = await User.query<User>()
-  .aggs("job_categories", (a) =>
+  .terms("job_categories", { field: "job_title" })
+  .aggs("experience_stats", (a) =>
     a
-      .terms("job_title")
-      .subAggs("experience_stats", (sa) =>
-        sa
-          .stats("years_of_experience")
-          .subAggs("salary_stats", (ssa) => ssa.stats("salary"))
-      )
+      .stats("years_of_experience")
+      .subAggs("salary_stats", (ssa) => ssa.stats("salary"))
   )
   .execute();
 ```
