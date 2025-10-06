@@ -41,8 +41,8 @@ export function OpenSearchIndex(options?: IndexOptions): ClassDecorator {
     indexMetadataMap.set(constructor, {
       ...existingMetadata,
       name: (options?.name || constructor.name).toLowerCase(),
-      numberOfShards: options?.numberOfShards || 2,
-      numberOfReplicas: options?.numberOfReplicas || 1,
+      numberOfShards: options?.numberOfShards,
+      numberOfReplicas: options?.numberOfReplicas,
     });
   };
 }

@@ -40,16 +40,15 @@ jest.mock("../decorator", () => {
       metadata.set(constructor, {
         ...existingMetadata,
         name: indexName,
-        numberOfShards: options?.numberOfShards || 2,
-        numberOfReplicas: options?.numberOfReplicas || 1,
+        numberOfShards: options?.numberOfShards,
+        numberOfReplicas: options?.numberOfReplicas,
       });
 
-      // 프로토타입에도 메타데이터 설정
       metadata.set(constructor.prototype.constructor, {
         ...existingMetadata,
         name: indexName,
-        numberOfShards: options?.numberOfShards || 2,
-        numberOfReplicas: options?.numberOfReplicas || 1,
+        numberOfShards: options?.numberOfShards,
+        numberOfReplicas: options?.numberOfReplicas,
       });
     };
   };
